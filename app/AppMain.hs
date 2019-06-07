@@ -15,30 +15,16 @@ import           GHCJS.DOM.EventM                 (EventM (..), mouseClientXY,
                                                    on)
 import           GHCJS.DOM.EventTargetClosures    (EventName (..))
 import qualified GHCJS.DOM.GlobalEventHandlers    as G (click)
-import qualified GHCJS.DOM.HTMLElement            (toHTMLElement)
 import           GHCJS.DOM.Node                   (appendChild)
 import           GHCJS.DOM.NonElementParentNode   (getElementById)
 import           GHCJS.DOM.Types
 
+import           Helper
+
+
 #ifndef __GHCJS__
 import           Language.Javascript.JSaddle.Warp (run)
 #endif
-
-createHTMLElement ::
-  (MonadJSM m, ToJSString localName) => localName -> m HTMLElement
-createHTMLElement tag = do
-  Just doc <- currentDocument
-  createHTMLElement' doc tag
-
-createHTMLElement' ::
-  (MonadJSM m, IsDocument self, ToJSString localName) =>
-  self -> localName -> m HTMLElement
-createHTMLElement' doc tag = do
-  el <- createElement doc tag
-  return $ toHtmlElement el
-
-toHtmlElement :: Element -> HTMLElement
-toHtmlElement  = uncheckedCastTo HTMLElement
 
 
 #ifdef __GHCJS__
@@ -67,7 +53,7 @@ app :: Document -> JSM ()
 app doc = do
     Just body <- getBody doc
     Just _area <- getElementById doc "area"
-    let area = toHtmlElement _area
+    let area = castHTMLElement _area
     releaseClick <- on area G.click $ do
         (x, y) <- mouseClientXY
         newParagraph <- createElement doc "p"
