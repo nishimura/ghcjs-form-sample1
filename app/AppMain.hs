@@ -52,8 +52,7 @@ appMain = run 8000 $ do
 app :: Document -> JSM ()
 app doc = do
     Just body <- getBody doc
-    Just _area <- getElementById doc "area"
-    let area = castHTMLElement _area
+    Just area <- getElementById doc "area"
     releaseClick <- on area G.click $ do
         (x, y) <- mouseClientXY
         newParagraph <- createElement doc "p"
@@ -64,7 +63,7 @@ app doc = do
 
     -- Make an exit button
     exitMVar <- liftIO newEmptyMVar
-    exit <- createHTMLElement "span"
+    exit <- createElement doc "span"
     text <- createTextNode doc "Click here to exit"
     appendChild exit text
     appendChild body exit
