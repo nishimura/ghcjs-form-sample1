@@ -50,7 +50,7 @@ appMain = do
 
 #else
 
-indexhtml = "tmpl/stub_index.html"
+indexhtml = "tmpl/index.html"
 
 appMain :: IO ()
 appMain = run 8000 $ do
