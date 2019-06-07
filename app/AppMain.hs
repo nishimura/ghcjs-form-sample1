@@ -17,8 +17,8 @@ import           GHCJS.DOM.EventTargetClosures    (EventName (..))
 import qualified GHCJS.DOM.GlobalEventHandlers    as G (click)
 import qualified GHCJS.DOM.HTMLElement            (toHTMLElement)
 import           GHCJS.DOM.Node                   (appendChild)
+import           GHCJS.DOM.NonElementParentNode   (getElementById)
 import           GHCJS.DOM.Types
-import           GHCJS.DOM.NonElementParentNode (getElementById)
 
 #ifndef __GHCJS__
 import           Language.Javascript.JSaddle.Warp (run)
@@ -44,13 +44,13 @@ toHtmlElement  = uncheckedCastTo HTMLElement
 #ifdef __GHCJS__
 
 appMain :: IO ()
-appMain = app do
+appMain = do
   Just doc <- currentDocument
   app doc
 
 #else
 
-indexhtml = "html/index.html"
+indexhtml = "tmpl/stub_index.html"
 
 appMain :: IO ()
 appMain = run 8000 $ do
