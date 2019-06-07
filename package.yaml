@@ -32,7 +32,10 @@ when:
     then:
       dependencies: ghcjs-base
     else:
-      dependencies: ghcjs-base-stub
+      dependencies:
+        - ghcjs-base-stub
+        - jsaddle
+        - jsaddle-warp
 
 executables:
   ghcjs-form-sample1-exe:

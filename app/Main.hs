@@ -1,8 +1,7 @@
 
 module Main where
 
-import           FormSample
-
+import           AppMain
 
 main :: IO ()
-main = runForm
+main = appMain
