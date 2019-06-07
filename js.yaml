@@ -10,7 +10,7 @@ setup-info:
   ghcjs:
     source:
       ghcjs-0.2.0.9011009_ghc-8.4.1:
-          url: /opt/ghcjs.tar.gz
+          url: https://github.com/alexanderkjeldaas/ghcjs/releases/download/fghcjs-8.4.1/ghcjs.tar.gz
 
 extra-deps:
   - ghcjs-base-0.2.0.0
