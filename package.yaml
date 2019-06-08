@@ -38,19 +38,15 @@ executables:
     main:                Main.hs
     source-dirs:         app
     ghc-options:
-    - -threaded
-    - -rtsopts
-    - -with-rtsopts=-N
-    dependencies:
-    - ghcjs-form-sample1
+    - -Wall
+    # dependencies:
+    # - ghcjs-form-sample1
 
 tests:
   ghcjs-form-sample1-test:
     main:                Spec.hs
     source-dirs:         test
     ghc-options:
-    - -threaded
-    - -rtsopts
-    - -with-rtsopts=-N
+    - -Wall
     dependencies:
     - ghcjs-form-sample1
