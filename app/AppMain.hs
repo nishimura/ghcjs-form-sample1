@@ -64,7 +64,7 @@ app doc = do
 
     -- Make an exit button
     exitMVar <- liftIO newEmptyMVar
-    exit <- createElement' doc "span"
+    exit <- createElement' doc TagSpan
     text <- createTextNode doc "Click here to exit"
     _ <- appendChild exit text
     _ <- appendChild body exit
