@@ -52,8 +52,29 @@ appMain = do
 
 app :: HTMLDocument -> JSM ()
 app doc = do
+  optArea <- prepare doc
+  case optArea of
+    Just area -> application doc area
+    Nothing   -> return ()
+
+prepare :: HTMLDocument -> JSM (Maybe HTMLElement)
+prepare doc = do
+  optBody <- getBody doc
+  optArea <- case optBody of
+    Just _  -> getElementById' doc "area"
+    Nothing -> liftIO $ putStrLn "<body> not found" >> return Nothing
+  case optArea of
+    Just area -> return $ Just area
+    Nothing   -> liftIO $ putStrLn "id=\"area\" not found" >> return Nothing
+
+
+
+
+
+
+application :: HTMLDocument -> HTMLElement -> JSM ()
+application doc area = do
     Just body <- getBody doc
-    Just area <- getElementById' doc "area"
     releaseClick <- on area G.click $ do
         (x, y) <- mouseClientXY
         newParagraph <- createElement doc "p"
