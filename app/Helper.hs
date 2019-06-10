@@ -3,14 +3,15 @@
 {-# LANGUAGE FlexibleInstances      #-}
 {-# LANGUAGE FunctionalDependencies #-}
 {-# LANGUAGE GADTs                  #-}
+{-# LANGUAGE MultiParamTypeClasses  #-}
 
 module Helper where
 
 import           Data.Coerce                    (Coercible)
 import           GHCJS.DOM.Document             (createElement)
+import           GHCJS.DOM.Element              (getTagName)
 import           GHCJS.DOM.NonElementParentNode (getElementById)
 import           GHCJS.DOM.Types
-import           GHCJS.DOM.Element              (getTagName)
 
 
 getElementById' :: (MonadJSM m, ToJSString elementId) =>
@@ -51,16 +52,16 @@ class Tag ret tag | tag -> ret where
 
 
 instance Tag ret (HtmlTag ret) where
-  tagName TagDiv  = "DIV"
-  tagName TagSpan  = "SPAN"
-  tagName TagForm = "FORM"
-  tagName TagInput = "INPUT"
+  tagName TagDiv    = "DIV"
+  tagName TagSpan   = "SPAN"
+  tagName TagForm   = "FORM"
+  tagName TagInput  = "INPUT"
   tagName TagButton = "BUTTON"
-  tagCast TagDiv obj  = uncheckedCastTo HTMLDivElement obj
-  tagCast TagSpan obj  = uncheckedCastTo HTMLSpanElement obj
-  tagCast TagForm obj  = uncheckedCastTo HTMLFormElement obj
+  tagCast TagDiv obj    = uncheckedCastTo HTMLDivElement obj
+  tagCast TagSpan obj   = uncheckedCastTo HTMLSpanElement obj
+  tagCast TagForm obj   = uncheckedCastTo HTMLFormElement obj
   tagCast TagInput obj  = uncheckedCastTo HTMLInputElement obj
-  tagCast TagButton obj  = uncheckedCastTo HTMLButtonElement obj
+  tagCast TagButton obj = uncheckedCastTo HTMLButtonElement obj
 
 
 
