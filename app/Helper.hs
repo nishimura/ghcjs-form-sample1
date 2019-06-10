@@ -1,3 +1,4 @@
+{-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE AllowAmbiguousTypes #-}
 {-# LANGUAGE FlexibleContexts       #-}
 {-# LANGUAGE FlexibleInstances      #-}
@@ -21,12 +22,22 @@ getElementById' doc eid = do
     Nothing -> return Nothing
 
 
-
+getElement :: (Tag ret (HtmlTag ret), IsGObject ret, ToJSString id, Show id, MonadJSM m) =>
+                            HTMLDocument -> id -> HtmlTag ret -> m ret
+getElement doc eid tag = do
+  optEl <- getElementById doc eid
+  case optEl of
+    Just el -> return $ tagCast tag el
+    Nothing -> error $
+      "not found: id [" ++ (show eid) ++ "] tagName [" ++ (tagName tag) ++ "]"
 
 
 data HtmlTag ret where
   TagDiv :: HtmlTag HTMLDivElement
   TagSpan :: HtmlTag HTMLSpanElement
+  TagForm :: HtmlTag HTMLFormElement
+  TagInput :: HtmlTag HTMLInputElement
+  TagButton :: HtmlTag HTMLButtonElement
 
 
 class Tag ret tag | tag -> ret where
@@ -37,13 +48,19 @@ class Tag ret tag | tag -> ret where
 instance Tag ret (HtmlTag ret) where
   tagName TagDiv  = "div"
   tagName TagSpan  = "span"
+  tagName TagForm = "form"
+  tagName TagInput = "input"
+  tagName TagButton = "button"
   tagCast TagDiv obj  = uncheckedCastTo HTMLDivElement obj
   tagCast TagSpan obj  = uncheckedCastTo HTMLSpanElement obj
+  tagCast TagForm obj  = uncheckedCastTo HTMLFormElement obj
+  tagCast TagInput obj  = uncheckedCastTo HTMLInputElement obj
+  tagCast TagButton obj  = uncheckedCastTo HTMLButtonElement obj
 
 
 
-createElement' :: (Tag ret (HtmlTag ret), IsGObject ret) =>
-                  HTMLDocument -> HtmlTag ret -> JSM ret
+createElement' :: (Tag ret (HtmlTag ret), IsGObject ret, MonadJSM m) =>
+                  HTMLDocument -> HtmlTag ret -> m ret
 createElement' doc tag = do
   el <- createElement doc (tagName tag)
   return $ tagCast tag el
