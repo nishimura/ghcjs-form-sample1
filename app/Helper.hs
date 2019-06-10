@@ -1,5 +1,4 @@
-{-# LANGUAGE RankNTypes #-}
-{-# LANGUAGE AllowAmbiguousTypes #-}
+{-# LANGUAGE AllowAmbiguousTypes    #-}
 {-# LANGUAGE FlexibleContexts       #-}
 {-# LANGUAGE FlexibleInstances      #-}
 {-# LANGUAGE FunctionalDependencies #-}
@@ -11,6 +10,7 @@ import           Data.Coerce                    (Coercible)
 import           GHCJS.DOM.Document             (createElement)
 import           GHCJS.DOM.NonElementParentNode (getElementById)
 import           GHCJS.DOM.Types
+import           GHCJS.DOM.Element              (getTagName)
 
 
 getElementById' :: (MonadJSM m, ToJSString elementId) =>
@@ -27,9 +27,14 @@ getElement :: (Tag ret (HtmlTag ret), IsGObject ret, ToJSString id, Show id, Mon
 getElement doc eid tag = do
   optEl <- getElementById doc eid
   case optEl of
-    Just el -> return $ tagCast tag el
-    Nothing -> error $
-      "not found: id [" ++ (show eid) ++ "] tagName [" ++ (tagName tag) ++ "]"
+    Just el -> do
+      let t = tagCast tag el
+          n = tagName tag
+      tn <- getTagName el
+      if n == tn
+        then return t
+        else error $ "not found: id [" ++ (show eid) ++ "] tagName [" ++ (tagName tag) ++ "]"
+    Nothing -> error $ "not found: id [" ++ (show eid) ++ "]"
 
 
 data HtmlTag ret where
@@ -46,11 +51,11 @@ class Tag ret tag | tag -> ret where
 
 
 instance Tag ret (HtmlTag ret) where
-  tagName TagDiv  = "div"
-  tagName TagSpan  = "span"
-  tagName TagForm = "form"
-  tagName TagInput = "input"
-  tagName TagButton = "button"
+  tagName TagDiv  = "DIV"
+  tagName TagSpan  = "SPAN"
+  tagName TagForm = "FORM"
+  tagName TagInput = "INPUT"
+  tagName TagButton = "BUTTON"
   tagCast TagDiv obj  = uncheckedCastTo HTMLDivElement obj
   tagCast TagSpan obj  = uncheckedCastTo HTMLSpanElement obj
   tagCast TagForm obj  = uncheckedCastTo HTMLFormElement obj
