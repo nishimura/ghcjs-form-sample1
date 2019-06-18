@@ -7,6 +7,7 @@ module AppMain where
 import           Control.Concurrent.MVar          (newEmptyMVar, putMVar,
                                                    takeMVar)
 import           Control.Monad.IO.Class           (MonadIO (..))
+import           Control.Monad.Trans.Except       (ExceptT (..), runExceptT)
 import           Control.Monad.Trans.Reader       (ReaderT)
 
 import           GHCJS.DOM                        (currentDocument, syncPoint)
@@ -44,33 +45,30 @@ appMain :: IO ()
 appMain = do
   putStrLn "start server: http://localhost:8000"
   run 8000 $ do
-    Just doc <- currentDocument
-    Just body <- getBody doc
-    html <- liftIO $ readFile indexhtml
-    setInnerHTML body html
-    app $ uncheckedCastTo HTMLDocument doc
+    ret <- runExceptT $ do
+      doc <- currentDocument <?> "document not found"
+      body <- getBody doc <?> "body not found"
+      html <- liftIO $ readFile indexhtml
+      liftJSM $ setInnerHTML body html
+      app $ uncheckedCastTo HTMLDocument doc
+    case ret of
+      Left e  -> liftIO $ print e
+      Right r -> return r
+
 
 #endif
 
 
-app :: HTMLDocument -> JSM ()
+app :: HTMLDocument -> ExceptT String JSM ()
 app doc = do
-  optArea <- prepare doc
-  case optArea of
-    Just area -> application doc area
-    Nothing   -> return ()
+  area <- prepare doc
+  application doc area
 
-prepare :: HTMLDocument -> JSM (Maybe HTMLElement)
+
+prepare :: HTMLDocument -> ExceptT String JSM HTMLElement
 prepare doc = do
-  optBody <- getBody doc
-  optArea <- case optBody of
-    Just _  -> getElementById' doc "area"
-    Nothing -> liftIO $ putStrLn "<body> not found" >> return Nothing
-  case optArea of
-    Just area -> return $ Just area
-    Nothing   -> liftIO $ putStrLn "id=\"area\" not found" >> return Nothing
-
-
+  _body <- getBody doc <?> "body not found"
+  getElementById' doc "area"
 
 
 getStyle :: (Show a1, Show a2) => a1 -> a2 -> Bool -> String
@@ -89,17 +87,17 @@ showPoint doc area (x,y) input = do
   _ <- appendChild area point
   return ()
 
-application :: HTMLDocument -> HTMLElement -> JSM ()
+application :: HTMLDocument -> HTMLElement -> ExceptT String JSM ()
 application doc area = do
-    Just body <- getBody doc
+    body <- getBody doc <?> "body not found"
     input <- getElement doc "coordinate" TagInput
-    releaseClick <- on area G.click $ do
+    releaseClick <- liftJSM $ on area G.click $ do
       (x, y) <- mouseClientXY
       setValue input $ show (x, y)
       showPoint doc area (x, y) False
 
     form <- getElement doc "form" TagForm
-    _ <- on form G.submit $ do
+    _ <- liftJSM $ on form G.submit $ do
       preventDefault
       val::String <- getValue input
       let xy = read val::(Int,Int)
@@ -111,15 +109,15 @@ application doc area = do
     text <- createTextNode doc "Click here to exit"
     _ <- appendChild exit text
     _ <- appendChild body exit
-    releaseExit <- on exit G.click $ liftIO $ putMVar exitMVar ()
+    releaseExit <- liftJSM $ on exit G.click $ liftIO $ putMVar exitMVar ()
 
     -- Force all all the lazy evaluation to be executed
-    syncPoint
+    liftJSM $ syncPoint
 
     -- In GHC compiled version the WebSocket connection will end when this
     -- thread ends.  So we will wait until the user clicks exit.
     _ <- liftIO $ takeMVar exitMVar
-    releaseClick
-    releaseExit
+    liftJSM $ releaseClick
+    liftJSM $ releaseExit
     setInnerHTML body "<h1>Ka kite ano (See you later)</h1>"
     return ()
