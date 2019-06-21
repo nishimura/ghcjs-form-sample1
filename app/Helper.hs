@@ -1,19 +1,31 @@
+{-# OPTIONS_GHC -fno-warn-orphans #-}
 {-# LANGUAGE AllowAmbiguousTypes    #-}
 {-# LANGUAGE FlexibleContexts       #-}
 {-# LANGUAGE FlexibleInstances      #-}
 {-# LANGUAGE FunctionalDependencies #-}
 {-# LANGUAGE GADTs                  #-}
 {-# LANGUAGE MultiParamTypeClasses  #-}
+{-# LANGUAGE TemplateHaskell        #-}
 
-module Helper where
+module Helper(
+  Tag(..)
+  , HtmlTag(..)
+  , (<?>)
+  , getElementById'
+  , getElement
+  , createElement'
+)where
 
 import           Control.Monad.Trans.Except     (ExceptT (..))
 import           Control.Monad.Trans.Maybe      (MaybeT (..), maybeToExceptT)
-import           Data.Coerce                    (Coercible)
+import           Generate2
 import           GHCJS.DOM.Document             (createElement)
 import           GHCJS.DOM.Element              (getTagName)
 import           GHCJS.DOM.NonElementParentNode (getElementById)
 import           GHCJS.DOM.Types
+
+
+$(mkTagInstance autoTags)
 
 
 trans :: MonadJSM m => e -> m (Maybe a) -> ExceptT e m a
@@ -53,32 +65,6 @@ getElement doc eid tag = do
     else error $ "not found: id [" ++ eid $++ "] tagName [" ++ n ++ "]"
 
 
-data HtmlTag ret where
-  TagDiv :: HtmlTag HTMLDivElement
-  TagSpan :: HtmlTag HTMLSpanElement
-  TagForm :: HtmlTag HTMLFormElement
-  TagInput :: HtmlTag HTMLInputElement
-  TagButton :: HtmlTag HTMLButtonElement
-
-
-class Tag ret tag | tag -> ret where
-  tagName :: tag -> String
-  tagCast :: (IsGObject ret, Coercible obj JSVal) => tag -> obj -> ret
-
-
-instance Tag ret (HtmlTag ret) where
-  tagName TagDiv    = "DIV"
-  tagName TagSpan   = "SPAN"
-  tagName TagForm   = "FORM"
-  tagName TagInput  = "INPUT"
-  tagName TagButton = "BUTTON"
-  tagCast TagDiv obj    = uncheckedCastTo HTMLDivElement obj
-  tagCast TagSpan obj   = uncheckedCastTo HTMLSpanElement obj
-  tagCast TagForm obj   = uncheckedCastTo HTMLFormElement obj
-  tagCast TagInput obj  = uncheckedCastTo HTMLInputElement obj
-  tagCast TagButton obj = uncheckedCastTo HTMLButtonElement obj
-
-
 
 createElement' :: (Tag ret (HtmlTag ret), IsGObject ret, MonadJSM m) =>
                   HTMLDocument -> HtmlTag ret -> m ret
@@ -87,8 +73,8 @@ createElement' doc tag = do
   return $ tagCast tag el
 
 
-test1 :: JSM HTMLSpanElement
-test1 = do
+_test1 :: JSM HTMLSpanElement
+_test1 = do
   let doc :: HTMLDocument
       doc = undefined
   -- createElement' doc TagDiv
