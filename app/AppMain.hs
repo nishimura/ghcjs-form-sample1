@@ -9,7 +9,6 @@ import           Control.Concurrent.MVar          (newEmptyMVar, putMVar,
 import           Control.Monad.IO.Class           (MonadIO (..))
 import           Control.Monad.Trans.Except       (ExceptT (..), runExceptT)
 import           Control.Monad.Trans.Reader       (ReaderT)
-
 import           GHCJS.DOM                        (currentDocument, syncPoint)
 import           GHCJS.DOM.Document               (createTextNode, getBody)
 import           GHCJS.DOM.Element                (setAttribute, setInnerHTML)
@@ -19,8 +18,6 @@ import qualified GHCJS.DOM.GlobalEventHandlers    as G (click, submit)
 import           GHCJS.DOM.HTMLInputElement       (getValue, setValue)
 import           GHCJS.DOM.Node                   (appendChild)
 import           GHCJS.DOM.Types
-
-
 import           Helper
 
 
@@ -34,7 +31,10 @@ import           Language.Javascript.JSaddle.Warp (run)
 appMain :: IO ()
 appMain = do
   Just doc <- currentDocument
-  app $ uncheckedCastTo HTMLDocument doc
+  ret <- runExceptT (app $ uncheckedCastTo HTMLDocument doc)
+  case ret of
+    Left e  -> print e
+    Right r -> return r
 
 #else
 
