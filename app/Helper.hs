@@ -1,4 +1,3 @@
-{-# OPTIONS_GHC -fno-warn-orphans #-}
 {-# LANGUAGE AllowAmbiguousTypes    #-}
 {-# LANGUAGE FlexibleContexts       #-}
 {-# LANGUAGE FlexibleInstances      #-}
@@ -18,13 +17,20 @@ module Helper(
 
 import           Control.Monad.Trans.Except     (ExceptT (..))
 import           Control.Monad.Trans.Maybe      (MaybeT (..), maybeToExceptT)
-import           Generate2
+import           Data.Coerce                    (Coercible)
+import           Generate1
 import           GHCJS.DOM.Document             (createElement)
 import           GHCJS.DOM.Element              (getTagName)
 import           GHCJS.DOM.NonElementParentNode (getElementById)
 import           GHCJS.DOM.Types
 
 
+class Tag ret tag | tag -> ret where
+  tagName :: tag -> String
+  tagCast :: (IsGObject ret, Coercible obj JSVal) => tag -> obj -> ret
+
+
+$(mkTagData autoTags)
 $(mkTagInstance autoTags)
 
 
